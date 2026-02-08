@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Goal Horizon - Your Future, Visualized</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cosmic-bg"></div>
+    
+    <!-- Settings Button -->
+    <button class="settings-btn" onclick="openSettings()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m-2 2l-4.2 4.2m13.2-5.2l-4.2-4.2m-2-2l-4.2-4.2"></path>
+        </svg>
+    </button>
+
+    <!-- Onboarding Screen -->
+    <div class="onboarding-screen" id="onboardingScreen">
+        <div class="onboarding-content">
+            <h1 class="onboarding-title">Welcome to Goal Horizon</h1>
+            <p class="onboarding-subtitle">Your journey to greatness starts here</p>
+            <div class="onboarding-form">
+                <input type="text" id="userName" placeholder="What's your name?" class="name-input">
+                <button onclick="completeOnboarding()" class="onboarding-btn">Begin My Journey</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header" id="mainHeader">
+        <h1 class="logo"><span id="userNameDisplay"></span></h1>
+        <p class="tagline">Building the future, one goal at a time</p>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container" id="mainContainer">
+        
+        <!-- Add New Goal Button -->
+        <div class="add-new-goal-section">
+            <button class="create-goal-btn" onclick="openGoalCreator()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Create New Goal
+            </button>
+        </div>
+
+        <!-- Goals Grid -->
+        <div class="goals-grid" id="goalsGrid">
+            <!-- Goal cards will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Goal Creator Modal -->
+    <div class="modal" id="goalCreatorModal">
+        <div class="modal-content large">
+            <button class="close-btn" onclick="closeGoalCreator()">×</button>
+            <h2>Create Your Goal</h2>
+            
+            <div class="form-section">
+                <label>Goal Title</label>
+                <input type="text" id="goalTitle" placeholder="e.g., Build a Million Dollar Business" class="input-field">
+                
+                <!-- Goal Suggestions -->
+                <div class="suggestions-container">
+                    <button class="suggestion-chip" onclick="setSuggestion('Launch My Own Business')">Launch My Own Business</button>
+                    <button class="suggestion-chip" onclick="setSuggestion('Get in the Best Shape of My Life')">Get in Best Shape</button>
+                    <button class="suggestion-chip" onclick="setSuggestion('Write and Publish a Book')">Write a Book</button>
+                    <button class="suggestion-chip" onclick="setSuggestion('Master a New Language')">Learn a Language</button>
+                    <button class="suggestion-chip" onclick="setSuggestion('Build My Dream Home')">Build Dream Home</button>
+                    <button class="suggestion-chip" onclick="setSuggestion('Achieve Financial Freedom')">Financial Freedom</button>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <label>Goal Description (Optional)</label>
+                <textarea id="goalDescription" placeholder="Why is this important to you?" class="textarea-field" rows="3"></textarea>
+            </div>
+
+            <div class="form-row">
+                <div class="form-section">
+                    <label>Time Period</label>
+                    <input type="number" id="goalDuration" placeholder="12" class="input-field" min="1">
+                </div>
+                <div class="form-section">
+                    <label>Unit</label>
+                    <select id="goalUnit" class="select-field">
+                        <option value="days">Days</option>
+                        <option value="weeks">Weeks</option>
+                        <option value="months" selected>Months</option>
+                        <option value="years">Years</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <label>End Date</label>
+                <input type="date" id="goalEndDate" class="input-field">
+            </div>
+
+            <div class="form-section">
+                <label>Choose Icon</label>
+                <div class="icon-picker" id="iconPicker">
+                    <div class="icon-option selected" data-icon="🎯">🎯</div>
+                    <div class="icon-option" data-icon="💼">💼</div>
+                    <div class="icon-option" data-icon="💪">💪</div>
+                    <div class="icon-option" data-icon="🏆">🏆</div>
+                    <div class="icon-option" data-icon="🚀">🚀</div>
+                    <div class="icon-option" data-icon="💰">💰</div>
+                    <div class="icon-option" data-icon="📚">📚</div>
+                    <div class="icon-option" data-icon="🎓">🎓</div>
+                    <div class="icon-option" data-icon="🏠">🏠</div>
+                    <div class="icon-option" data-icon="✈️">✈️</div>
+                    <div class="icon-option" data-icon="❤️">❤️</div>
+                    <div class="icon-option" data-icon="🌟">🌟</div>
+                </div>
+            </div>
+
+            <button class="create-btn" onclick="createGoal()">Create Goal</button>
+        </div>
+    </div>
+
+    <!-- Goal Detail View -->
+    <div class="modal" id="goalDetailModal">
+        <div class="modal-content fullscreen">
+            <button class="close-btn" onclick="closeGoalDetail()">×</button>
+            <button class="delete-goal-btn" onclick="deleteCurrentGoal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+            
+            <div class="goal-detail-header">
+                <div class="goal-detail-icon" id="detailIcon">🎯</div>
+                <h2 class="goal-detail-title" id="detailTitle">Goal Title</h2>
+                <p class="goal-detail-description" id="detailDescription"></p>
+            </div>
+
+            <!-- Countdown Display -->
+            <div class="countdown-display" id="countdownDisplay">
+                <div class="countdown-item">
+                    <div class="countdown-value" id="daysLeft">0</div>
+                    <div class="countdown-label">Days</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-value" id="hoursLeft">0</div>
+                    <div class="countdown-label">Hours</div>
+                </div>
+                <div class="countdown-item">
+                    <div class="countdown-value" id="minutesLeft">0</div>
+                    <div class="countdown-label">Minutes</div>
+                </div>
+            </div>
+
+            <!-- Progress Ring -->
+            <div class="progress-ring-container">
+                <svg class="progress-ring" viewBox="0 0 200 200">
+                    <circle class="progress-ring-circle-bg" cx="100" cy="100" r="85" />
+                    <circle class="progress-ring-circle" id="progressCircle" cx="100" cy="100" r="85" />
+                </svg>
+                <div class="progress-percentage" id="detailPercentage">0%</div>
+            </div>
+
+            <!-- Period Breakdown -->
+            <div class="period-breakdown" id="periodBreakdown">
+                <!-- Periods will be dynamically inserted -->
+            </div>
+
+            <!-- Add Period Button -->
+            <button class="add-period-btn" onclick="addPeriod()">+ Add Breakdown Period</button>
+        </div>
+    </div>
+
+    <!-- Period Detail Modal -->
+    <div class="modal" id="periodDetailModal">
+        <div class="modal-content medium">
+            <button class="close-btn" onclick="closePeriodDetail()">×</button>
+            <h2 id="periodTitle">Period Name</h2>
+            <div class="period-deadline" id="periodDeadline"></div>
+            
+            <div class="tasks-list" id="tasksList">
+                <!-- Tasks will be inserted here -->
+            </div>
+
+            <div class="add-task-section">
+                <input type="text" id="newTaskInput" placeholder="Add a task..." class="task-input" onkeypress="if(event.key==='Enter') addTask()">
+                <button onclick="addTask()" class="add-task-btn">Add</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeSettings()">×</button>
+            <h2>Settings</h2>
+            
+            <div class="settings-section">
+                <h3>👤 Your Name</h3>
+                <input type="text" id="settingsName" class="input-field">
+                <button class="update-btn" onclick="updateName()">Update Name</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>🔔 Completion Sound</h3>
+                <select id="soundSelect" onchange="previewSound()" class="select-field">
+                    <option value="bell">🔔 Bell</option>
+                    <option value="cheer">🎉 Cheer</option>
+                    <option value="success">✨ Success Chime</option>
+                    <option value="coin">💰 Coin</option>
+                    <option value="whoosh">🌊 Whoosh</option>
+                </select>
+                <button class="preview-btn" onclick="previewSound()">Preview Sound</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>📊 Your Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalGoalsCount">0</div>
+                        <div class="stat-label">Active Goals</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="completedTasksCount">0</div>
+                        <div class="stat-label">Tasks Done</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="completionRate">0%</div>
+                        <div class="stat-label">Completion Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3>💾 Data Management</h3>
+                <button class="export-btn" onclick="exportData()">📥 Export Data</button>
+                <button class="import-btn" onclick="document.getElementById('importFile').click()">📤 Import Data</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                <button class="danger-btn" onclick="resetAllData()">⚠️ Reset All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="sounds.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
