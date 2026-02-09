@@ -1,4 +1,4 @@
-// Goal Horizon App - Hierarchical Goal Tracking System
+// Goal Horizon App - Hierarchical Goal Tracking System with Smart NLP
 
 // State Management
 let appState = {
@@ -79,8 +79,37 @@ function showMainApp() {
     document.getElementById('mainContainer').classList.add('visible');
     document.getElementById('userNameDisplay').textContent = appState.userName;
     
+    // Set user avatar initial
+    updateUserAvatar();
+    
     renderGoalsGrid();
     updateStats();
+    updateHeaderStats();
+}
+
+// Update user avatar with first letter
+function updateUserAvatar() {
+    const avatar = document.getElementById('userAvatar');
+    if (appState.userName) {
+        avatar.textContent = appState.userName.charAt(0).toUpperCase();
+    }
+}
+
+// Update header stats
+function updateHeaderStats() {
+    let totalTasks = 0;
+    let completedTasks = 0;
+    
+    appState.goals.forEach(goal => {
+        const tasks = getTotalTasks(goal);
+        totalTasks += tasks.total;
+        completedTasks += tasks.completed;
+    });
+    
+    const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    document.getElementById('headerGoalsCount').textContent = appState.goals.length;
+    document.getElementById('headerCompletionRate').textContent = `${completionRate}%`;
 }
 
 // Icon Picker Setup
@@ -192,9 +221,71 @@ function createGoal() {
     renderGoalsGrid();
     closeGoalCreator();
     updateStats();
+    updateHeaderStats();
     
     // Play success sound
     soundGen.play(appState.settings.sound);
+}
+
+// SMART NATURAL LANGUAGE PARSER FOR PERIODS
+function parseNaturalLanguagePeriod(input) {
+    const text = input.toLowerCase().trim();
+    
+    // Number words to digits mapping
+    const numberWords = {
+        'a': 1, 'an': 1, 'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5,
+        'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+        'eleven': 11, 'twelve': 12, 'fifteen': 15, 'twenty': 20, 'thirty': 30
+    };
+    
+    // Extract number (either digit or word)
+    let number = 1; // default
+    let unit = null;
+    
+    // Try to find a number (digit)
+    const digitMatch = text.match(/(\d+)/);
+    if (digitMatch) {
+        number = parseInt(digitMatch[1]);
+    } else {
+        // Try to find number word
+        for (const [word, value] of Object.entries(numberWords)) {
+            if (text.includes(word)) {
+                number = value;
+                break;
+            }
+        }
+    }
+    
+    // Detect unit (day, week, month, year)
+    if (text.includes('day')) unit = 'days';
+    else if (text.includes('week')) unit = 'weeks';
+    else if (text.includes('month')) unit = 'months';
+    else if (text.includes('year')) unit = 'years';
+    
+    // If we found a unit, calculate the end date
+    if (unit) {
+        const now = new Date();
+        let endDate = new Date(now);
+        
+        switch(unit) {
+            case 'days':
+                endDate.setDate(endDate.getDate() + number);
+                break;
+            case 'weeks':
+                endDate.setDate(endDate.getDate() + (number * 7));
+                break;
+            case 'months':
+                endDate.setMonth(endDate.getMonth() + number);
+                break;
+            case 'years':
+                endDate.setFullYear(endDate.getFullYear() + number);
+                break;
+        }
+        
+        return endDate.toISOString().split('T')[0];
+    }
+    
+    return null;
 }
 
 // Render Goals Grid with Swipe-to-Delete
@@ -287,6 +378,7 @@ function handleTouchEnd(e) {
                 saveState();
                 renderGoalsGrid();
                 updateStats();
+                updateHeaderStats();
             } else {
                 swipeTarget.style.transform = 'translateX(0)';
                 const deleteAction = swipeTarget.parentElement.querySelector('.delete-action');
@@ -527,24 +619,16 @@ function addPeriod() {
     const goal = appState.goals.find(g => g.id === currentGoalId);
     if (!goal) return;
     
-    const periodName = prompt('Enter period name (e.g., "This Month", "Q1 2024", "Year 1"):');
-    if (!periodName || !periodName.trim()) return;
+    const periodInput = prompt('Enter period name (e.g., "2 weeks", "3 months", "Year 1"):');
+    if (!periodInput || !periodInput.trim()) return;
     
-    // Ask for period deadline
-    const wantsDeadline = confirm('Do you want to set a deadline for this period?');
-    let endDate = null;
-    
-    if (wantsDeadline) {
-        const dateInput = prompt('Enter deadline (YYYY-MM-DD):');
-        if (dateInput) {
-            endDate = dateInput;
-        }
-    }
+    // Try to parse natural language
+    const parsedDate = parseNaturalLanguagePeriod(periodInput);
     
     const period = {
         id: Date.now().toString(),
-        name: periodName.trim(),
-        endDate: endDate,
+        name: periodInput.trim(),
+        endDate: parsedDate, // Will be null if parsing failed, otherwise ISO date string
         tasks: []
     };
     
@@ -552,6 +636,17 @@ function addPeriod() {
     saveState();
     renderPeriods(goal);
     renderGoalsGrid();
+    
+    // Show feedback if date was auto-calculated
+    if (parsedDate) {
+        const formattedDate = new Date(parsedDate).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+        });
+        // Could show a toast notification here
+        console.log(`Auto-calculated deadline: ${formattedDate}`);
+    }
 }
 
 function deletePeriod(periodId) {
@@ -658,6 +753,7 @@ function addTask() {
     updateProgressRing(progress);
     renderPeriods(goal);
     renderGoalsGrid();
+    updateHeaderStats();
 }
 
 function toggleTask(index) {
@@ -685,6 +781,7 @@ function toggleTask(index) {
     renderPeriods(goal);
     renderGoalsGrid();
     updateStats();
+    updateHeaderStats();
 }
 
 function deleteTask(index) {
@@ -703,6 +800,7 @@ function deleteTask(index) {
     renderPeriods(goal);
     renderGoalsGrid();
     updateStats();
+    updateHeaderStats();
 }
 
 function deleteCurrentGoal() {
@@ -713,6 +811,7 @@ function deleteCurrentGoal() {
     closeGoalDetail();
     renderGoalsGrid();
     updateStats();
+    updateHeaderStats();
 }
 
 // Settings
@@ -736,6 +835,7 @@ function updateName() {
     
     appState.userName = newName;
     document.getElementById('userNameDisplay').textContent = newName;
+    updateUserAvatar();
     saveState();
     alert('Name updated successfully!');
 }
