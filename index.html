@@ -29,10 +29,27 @@
         </div>
     </div>
 
-    <!-- Header -->
+    <!-- Premium Glassmorphic Header -->
     <header class="header" id="mainHeader">
-        <h1 class="logo"><span id="userNameDisplay"></span></h1>
-        <p class="tagline">Building the future, one goal at a time</p>
+        <div class="header-glass">
+            <div class="header-content">
+                <div class="user-avatar" id="userAvatar"></div>
+                <div class="header-text">
+                    <h1 class="user-greeting">Hello, <span id="userNameDisplay" class="user-name"></span></h1>
+                    <p class="header-subtitle">Let's make today count</p>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-bubble">
+                    <div class="stat-number" id="headerGoalsCount">0</div>
+                    <div class="stat-label">Active Goals</div>
+                </div>
+                <div class="stat-bubble">
+                    <div class="stat-number" id="headerCompletionRate">0%</div>
+                    <div class="stat-label">Progress</div>
+                </div>
+            </div>
+        </div>
     </header>
 
     <!-- Main Container -->
