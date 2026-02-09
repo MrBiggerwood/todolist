@@ -33,7 +33,7 @@
     <header class="header" id="mainHeader">
         <div class="header-glass">
             <div class="header-content">
-                <div class="user-avatar" id="userAvatar"></div>
+                <div class="user-avatar" id="userAvatar" onclick="openAvatarPicker()" title="Click to change avatar"></div>
                 <div class="header-text">
                     <h1 class="user-greeting">Hello, <span id="userNameDisplay" class="user-name"></span></h1>
                     <p class="header-subtitle">Let's make today count</p>
@@ -69,6 +69,19 @@
         <!-- Goals Grid -->
         <div class="goals-grid" id="goalsGrid">
             <!-- Goal cards will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <!-- Avatar Picker Modal -->
+    <div class="modal" id="avatarPickerModal">
+        <div class="modal-content medium">
+            <button class="close-btn" onclick="closeAvatarPicker()">×</button>
+            <h2>Choose Your Avatar</h2>
+            <p style="opacity: 0.8; margin-bottom: 20px;">Select an emoji as your profile picture</p>
+            
+            <div class="avatar-grid" id="avatarGrid">
+                <!-- Avatar emojis will be inserted here -->
+            </div>
         </div>
     </div>
 
@@ -221,6 +234,36 @@
                 <h3>👤 Your Name</h3>
                 <input type="text" id="settingsName" class="input-field">
                 <button class="update-btn" onclick="updateName()">Update Name</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>🎨 Background Theme</h3>
+                <div class="theme-picker">
+                    <div class="theme-option" data-theme="purple" onclick="setTheme('purple')" title="Purple Haze">
+                        <div class="theme-preview theme-purple"></div>
+                        <div class="theme-name">Purple</div>
+                    </div>
+                    <div class="theme-option" data-theme="blue" onclick="setTheme('blue')" title="Ocean Blue">
+                        <div class="theme-preview theme-blue"></div>
+                        <div class="theme-name">Blue</div>
+                    </div>
+                    <div class="theme-option" data-theme="green" onclick="setTheme('green')" title="Forest Green">
+                        <div class="theme-preview theme-green"></div>
+                        <div class="theme-name">Green</div>
+                    </div>
+                    <div class="theme-option" data-theme="orange" onclick="setTheme('orange')" title="Sunset">
+                        <div class="theme-preview theme-orange"></div>
+                        <div class="theme-name">Orange</div>
+                    </div>
+                    <div class="theme-option" data-theme="pink" onclick="setTheme('pink')" title="Pink Dreams">
+                        <div class="theme-preview theme-pink"></div>
+                        <div class="theme-name">Pink</div>
+                    </div>
+                    <div class="theme-option" data-theme="dark" onclick="setTheme('dark')" title="Midnight">
+                        <div class="theme-preview theme-dark"></div>
+                        <div class="theme-name">Dark</div>
+                    </div>
+                </div>
             </div>
 
             <div class="settings-section">

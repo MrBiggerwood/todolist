@@ -1,8 +1,10 @@
-// Goal Horizon App - Hierarchical Goal Tracking System with Smart NLP
+// Goal Horizon App - v4.0 with Avatar Picker and Theme Selector
 
 // State Management
 let appState = {
     userName: '',
+    userAvatar: '', // Emoji avatar
+    theme: 'purple', // Default theme
     goals: [],
     settings: {
         sound: 'bell',
@@ -19,6 +21,13 @@ let touchCurrentX = 0;
 let isSwiping = false;
 let swipeTarget = null;
 
+// Avatar emojis - glassmorphic style
+const avatarEmojis = [
+    '😊', '😎', '🤩', '🥳', '🚀', '⭐', '🔥', '💪', '🎯', '🏆',
+    '👑', '💎', '🌟', '✨', '🎨', '🎭', '🎪', '🎸', '🎮', '⚡',
+    '🦄', '🐉', '🦅', '🦁', '🐺', '🦊', '🐯', '🦈', '🐙', '🦋'
+];
+
 // Initialize app
 function init() {
     loadState();
@@ -28,6 +37,9 @@ function init() {
     } else {
         showMainApp();
     }
+    
+    // Apply saved theme
+    applyTheme(appState.theme);
     
     // Set sound preference
     const soundSelect = document.getElementById('soundSelect');
@@ -46,12 +58,12 @@ function init() {
         unitSelect.addEventListener('change', updateEndDate);
     }
     
-    // Auto-save every 30 seconds as backup
+    // INCREASED AUTO-SAVE FREQUENCY: Every 10 seconds
     setInterval(() => {
         if (appState.userName) {
             saveState();
         }
-    }, 30000);
+    }, 10000);
 }
 
 // Onboarding
@@ -69,6 +81,10 @@ function completeOnboarding() {
     }
     
     appState.userName = name;
+    // Set default avatar to first letter if no emoji selected
+    if (!appState.userAvatar) {
+        appState.userAvatar = name.charAt(0).toUpperCase();
+    }
     saveState();
     showMainApp();
 }
@@ -79,7 +95,7 @@ function showMainApp() {
     document.getElementById('mainContainer').classList.add('visible');
     document.getElementById('userNameDisplay').textContent = appState.userName;
     
-    // Set user avatar initial
+    // Set user avatar
     updateUserAvatar();
     
     renderGoalsGrid();
@@ -87,12 +103,64 @@ function showMainApp() {
     updateHeaderStats();
 }
 
-// Update user avatar with first letter
+// Update user avatar with emoji or initial
 function updateUserAvatar() {
     const avatar = document.getElementById('userAvatar');
-    if (appState.userName) {
+    if (appState.userAvatar) {
+        avatar.textContent = appState.userAvatar;
+    } else if (appState.userName) {
         avatar.textContent = appState.userName.charAt(0).toUpperCase();
     }
+}
+
+// Avatar Picker
+function openAvatarPicker() {
+    const modal = document.getElementById('avatarPickerModal');
+    const grid = document.getElementById('avatarGrid');
+    
+    // Populate avatar grid
+    grid.innerHTML = '';
+    avatarEmojis.forEach(emoji => {
+        const option = document.createElement('div');
+        option.className = 'avatar-emoji-option';
+        option.textContent = emoji;
+        option.onclick = () => selectAvatar(emoji);
+        grid.appendChild(option);
+    });
+    
+    modal.classList.add('active');
+}
+
+function closeAvatarPicker() {
+    document.getElementById('avatarPickerModal').classList.remove('active');
+}
+
+function selectAvatar(emoji) {
+    appState.userAvatar = emoji;
+    updateUserAvatar();
+    saveState();
+    closeAvatarPicker();
+}
+
+// Theme Management
+function applyTheme(themeName) {
+    document.body.setAttribute('data-theme', themeName);
+    appState.theme = themeName;
+    
+    // Update selected state in UI
+    document.querySelectorAll('.theme-option').forEach(option => {
+        if (option.dataset.theme === themeName) {
+            option.classList.add('selected');
+        } else {
+            option.classList.remove('selected');
+        }
+    });
+    
+    saveState();
+}
+
+function setTheme(themeName) {
+    applyTheme(themeName);
 }
 
 // Update header stats
@@ -644,7 +712,6 @@ function addPeriod() {
             day: 'numeric', 
             year: 'numeric' 
         });
-        // Could show a toast notification here
         console.log(`Auto-calculated deadline: ${formattedDate}`);
     }
 }
@@ -819,6 +886,10 @@ function openSettings() {
     const modal = document.getElementById('settingsModal');
     document.getElementById('settingsName').value = appState.userName;
     updateStats();
+    
+    // Update theme selection
+    applyTheme(appState.theme);
+    
     modal.classList.add('active');
 }
 
@@ -835,7 +906,11 @@ function updateName() {
     
     appState.userName = newName;
     document.getElementById('userNameDisplay').textContent = newName;
-    updateUserAvatar();
+    // Update avatar to first letter if it was an initial
+    if (appState.userAvatar.length === 1 && appState.userAvatar === appState.userAvatar.toUpperCase()) {
+        appState.userAvatar = newName.charAt(0).toUpperCase();
+        updateUserAvatar();
+    }
     saveState();
     alert('Name updated successfully!');
 }
@@ -891,6 +966,7 @@ function importData(event) {
             if (confirm('This will replace all your current data. Continue?')) {
                 appState = importedData;
                 saveState();
+                applyTheme(appState.theme);
                 showMainApp();
                 alert('Data imported successfully!');
             }
@@ -908,6 +984,8 @@ function resetAllData() {
     localStorage.removeItem('goalHorizonState');
     appState = {
         userName: '',
+        userAvatar: '',
+        theme: 'purple',
         goals: [],
         settings: {
             sound: 'bell',
@@ -941,18 +1019,32 @@ function loadState() {
     }
 }
 
-// Click outside modal to close
+// IMPROVED: Click outside modal to close - INSTANT CLOSE
 window.onclick = function(event) {
-    const modals = ['settingsModal', 'goalCreatorModal', 'periodDetailModal'];
+    const modals = [
+        'settingsModal', 
+        'goalCreatorModal', 
+        'periodDetailModal', 
+        'goalDetailModal',
+        'avatarPickerModal'
+    ];
+    
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
+        // Check if click is directly on modal background (not on content)
         if (event.target === modal) {
             modal.classList.remove('active');
+            
+            // Clean up based on which modal
             if (modalId === 'periodDetailModal') {
                 closePeriodDetail();
             } else if (modalId === 'goalCreatorModal') {
                 closeGoalCreator();
-            } else {
+            } else if (modalId === 'goalDetailModal') {
+                closeGoalDetail();
+            } else if (modalId === 'avatarPickerModal') {
+                closeAvatarPicker();
+            } else if (modalId === 'settingsModal') {
                 closeSettings();
             }
         }
@@ -965,4 +1057,11 @@ document.addEventListener('DOMContentLoaded', init);
 // Save state before page unload
 window.addEventListener('beforeunload', () => {
     saveState();
+});
+
+// Save on visibility change (when user switches tabs)
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        saveState();
+    }
 });
